@@ -1,0 +1,25 @@
+# Forge Tool - أدوات PDF
+
+> موقع عربي مجاني يحتوي على أكثر من 25 أداة PDF تعمل مباشرة في المتصفح بدون تسجيل أو تحميل.
+
+## About
+Forge Tool (فورج دول) is a free, browser-based PDF toolkit for Arabic-speaking users.
+All tools run client-side — files never leave the user's device.
+
+## Main Tools
+- Merge PDF
+- Split PDF
+- Compress PDF
+- Organize PDF pages
+- Remove pages from PDF
+- Repair PDF
+- Convert Word / Excel / PowerPoint / JPG / HTML / EPUB → PDF
+- Convert PDF → Word / Excel / PowerPoint / JPG
+
+## Tech
+- Pure HTML/CSS/JS (no backend required for v1)
+- Google Fonts: Cairo
+- Hosted on GitHub Pages
+
+## Contact
+- Site: https://yourname.github.io/forge-tool/
