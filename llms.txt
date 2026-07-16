@@ -6,10 +6,19 @@
 Forge Tool (فورج دول) is a free, browser-based PDF toolkit for Arabic-speaking users.
 All tools run client-side — files never leave the user's device.
 
+## Pages
+- Home: https://hdi292.github.io/forge-tool/
+- About: https://hdi292.github.io/forge-tool/pages/about.html
+- Contact: https://hdi292.github.io/forge-tool/pages/contact.html
+- Privacy: https://hdi292.github.io/forge-tool/pages/privacy.html
+- Terms: https://hdi292.github.io/forge-tool/pages/terms.html
+- FAQ: https://hdi292.github.io/forge-tool/pages/faq.html
+- Blog: https://hdi292.github.io/forge-tool/blog.html
+
 ## Main Tools
-- Merge PDF
-- Split PDF
-- Compress PDF
+- Merge PDF: https://hdi292.github.io/forge-tool/pages/merge-pdf.html
+- Split PDF: https://hdi292.github.io/forge-tool/pages/split-pdf.html
+- Compress PDF: https://hdi292.github.io/forge-tool/pages/compress-pdf.html
 - Organize PDF pages
 - Remove pages from PDF
 - Repair PDF
@@ -20,6 +29,4 @@ All tools run client-side — files never leave the user's device.
 - Pure HTML/CSS/JS (no backend required for v1)
 - Google Fonts: Cairo
 - Hosted on GitHub Pages
-
-## Contact
-- Site: https://yourname.github.io/forge-tool/
+- AdSense-ready (after approval)
