@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم ملف PDF مجاناً | فورج دول</title>
-    <meta name="description" content="قسّم ملفات PDF حسب الصفحات أو استخرج صفحات محددة. أداة مجانية وسريعة لتقسيم PDF أونلاين.">
+    <meta name="description" content="قسّم ملفات PDF حسب الصفحات أو استخرج صفحات محددة مجاناً أونلاين.">
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 40px; }
-        .tool-hero .icon { font-size: 64px; margin-bottom: 16px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
         .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
-        .tool-hero p { font-size: 17px; color: #6b7280; max-width: 700px; margin: 0 auto; line-height: 1.7; }
-        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 60px 30px; text-align: center; cursor: pointer; margin: 30px 0; }
-        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: #faf5ff; }
+        .upload-zone h2 { font-size: 22px; margin-bottom: 8px; }
+        .options { background: white; padding: 24px; border-radius: 16px; margin: 20px 0; }
+        .options h3 { margin-bottom: 16px; }
+        .option-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .option-row label { font-weight: 600; }
+        .option-row input { padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-family: inherit; width: 100px; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
     </style>
 </head>
 <body>
@@ -34,15 +45,39 @@
 
     <main class="tool-page">
         <div class="tool-hero">
-            <div class="icon">✂️</div>
+            <div style="font-size: 64px; margin-bottom: 16px;">✂️</div>
             <h1>تقسيم ملف PDF</h1>
-            <p>قسّم ملف PDF كبير إلى ملفات أصغر، أو استخرج صفحات محددة. كل المعالجة في متصفحك - آمن وسريع.</p>
+            <p>قسّم ملف PDF كبير إلى ملفات أصغر، أو استخرج صفحات محددة. كل المعالجة في متصفحك.</p>
         </div>
 
-        <div class="upload-zone" onclick="alert('قريباً: ارفع ملفك هنا')">
+        <div class="upload-zone" id="dropZone">
             <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
-            <h2 style="font-size: 22px; margin-bottom: 8px;">اسحب ملف PDF هنا</h2>
-            <p style="color: #6b7280;">اختر طريقة التقسيم: حسب النطاق أو صفحات فردية</p>
+            <h2>اسحب ملف PDF هنا أو اضغط للاختيار</h2>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
+        </div>
+
+        <div class="options" id="options" style="display:none">
+            <h3>طريقة التقسيم:</h3>
+            <div class="option-row">
+                <label><input type="radio" name="mode" value="each" checked> كل صفحة في ملف منفصل</label>
+            </div>
+            <div class="option-row">
+                <label><input type="radio" name="mode" value="range"> نطاق صفحات</label>
+                <span>من صفحة</span>
+                <input type="number" id="fromPage" min="1" value="1">
+                <span>إلى صفحة</span>
+                <input type="number" id="toPage" min="1" value="1">
+            </div>
+            <div class="option-row">
+                <label><input type="radio" name="mode" value="specific"> صفحات محددة (مثال: 1,3,5-7)</label>
+                <input type="text" id="specificPages" placeholder="1,3,5-7" style="width: 200px;">
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="splitBtn" disabled>تقسيم الملف</button>
         </div>
     </main>
 
@@ -53,5 +88,126 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const optionsDiv = document.getElementById('options');
+        const splitBtn = document.getElementById('splitBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+                selectedFile = e.dataTransfer.files[0];
+                onFileSelected();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.type === 'application/pdf') {
+                selectedFile = e.target.files[0];
+                onFileSelected();
+            }
+        });
+
+        function onFileSelected() {
+            dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>${(selectedFile.size/1024).toFixed(1)} KB</p>`;
+            optionsDiv.style.display = 'block';
+            splitBtn.disabled = false;
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        function parsePages(str, max) {
+            const pages = new Set();
+            str.split(',').forEach(part => {
+                part = part.trim();
+                if (part.includes('-')) {
+                    const [a, b] = part.split('-').map(n => parseInt(n));
+                    for (let i = a; i <= Math.min(b, max); i++) if (i >= 1) pages.add(i - 1);
+                } else {
+                    const n = parseInt(part);
+                    if (n >= 1 && n <= max) pages.add(n - 1);
+                }
+            });
+            return Array.from(pages).sort((a, b) => a - b);
+        }
+
+        async function downloadZip(files) {
+            // Simple approach: download sequentially
+            for (let i = 0; i < files.length; i++) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(files[i].blob);
+                a.download = files[i].name;
+                a.click();
+                await new Promise(r => setTimeout(r, 300));
+            }
+        }
+
+        splitBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            splitBtn.disabled = true;
+            showStatus('⏳ جاري التقسيم...', 'info');
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const bytes = await selectedFile.arrayBuffer();
+                const pdf = await PDFDocument.load(bytes);
+                const totalPages = pdf.getPageCount();
+                const mode = document.querySelector('input[name="mode"]:checked').value;
+
+                let ranges = [];
+                if (mode === 'each') {
+                    for (let i = 0; i < totalPages; i++) ranges.push([[i]]);
+                } else if (mode === 'range') {
+                    const from = Math.max(0, parseInt(document.getElementById('fromPage').value) - 1);
+                    const to = Math.min(totalPages - 1, parseInt(document.getElementById('toPage').value) - 1);
+                    const pages = [];
+                    for (let i = from; i <= to; i++) pages.push(i);
+                    ranges.push([pages]);
+                } else {
+                    const pages = parsePages(document.getElementById('specificPages').value, totalPages);
+                    if (pages.length === 0) throw new Error('لم يتم تحديد صفحات صحيحة');
+                    ranges.push([pages]);
+                }
+
+                const outputFiles = [];
+                for (let r = 0; r < ranges.length; r++) {
+                    const newPdf = await PDFDocument.create();
+                    for (const pages of ranges[r]) {
+                        const copied = await newPdf.copyPages(pdf, pages);
+                        copied.forEach(p => newPdf.addPage(p));
+                    }
+                    const out = await newPdf.save();
+                    outputFiles.push({
+                        blob: new Blob([out], { type: 'application/pdf' }),
+                        name: ranges.length === 1 ? `split-${selectedFile.name}` : `split-${r + 1}.pdf`
+                    });
+                }
+
+                if (outputFiles.length === 1) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(outputFiles[0].blob);
+                    a.download = outputFiles[0].name;
+                    a.click();
+                } else {
+                    await downloadZip(outputFiles);
+                }
+
+                showStatus(`✅ تم التقسيم بنجاح! ${outputFiles.length} ملف`, 'success');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+            splitBtn.disabled = false;
+        });
+    </script>
 </body>
 </html>
