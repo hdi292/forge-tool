@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استخراج نص من PDF | فورج دول</title>
+    <meta name="description" content="استخرج النص من ملفات PDF مجاناً أونلاين. تحويل PDF إلى نص قابل للتعديل.">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <style>
+        .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
+        .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .text-output { background: white; border-radius: 16px; padding: 20px; margin: 20px 0; min-height: 200px; }
+        .text-output textarea { width: 100%; min-height: 300px; border: none; resize: vertical; font-family: inherit; font-size: 15px; line-height: 1.8; padding: 10px; }
+        .action-btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin: 0 4px; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="tool-page">
+        <div class="tool-hero">
+            <div style="font-size: 64px; margin-bottom: 16px;">📝</div>
+            <h1>استخراج نص من PDF</h1>
+            <p>استخرج كل النص من ملف PDF واحفظه كملف نصي عادي.</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
+            <h2>اسحب ملف PDF هنا أو اضغط للاختيار</h2>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="text-output" id="outputArea" style="display:none">
+            <textarea id="textResult" placeholder="النص المستخرج سيظهر هنا..."></textarea>
+            <div style="text-align: center; margin-top: 16px;">
+                <button class="action-btn" id="copyBtn">📋 نسخ</button>
+                <button class="action-btn" id="downloadBtn">💾 تحميل .txt</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const outputArea = document.getElementById('outputArea');
+        const textResult = document.getElementById('textResult');
+        const statusDiv = document.getElementById('status');
+        let selectedFile = null;
+        let extractedText = '';
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+                selectedFile = e.dataTransfer.files[0];
+                extractText();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.type === 'application/pdf') {
+                selectedFile = e.target.files[0];
+                extractText();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        async function extractText() {
+            if (!selectedFile) return;
+            showStatus('⏳ جاري استخراج النص...', 'info');
+            outputArea.style.display = 'none';
+
+            try {
+                const bytes = await selectedFile.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+                let fullText = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += `--- صفحة ${i} ---\n${pageText}\n\n`;
+                    showStatus(`⏳ استخراج الصفحة ${i} من ${pdf.numPages}...`, 'info');
+                }
+
+                extractedText = fullText;
+                textResult.value = fullText;
+                outputArea.style.display = 'block';
+                showStatus(`✅ تم استخراج ${fullText.length} حرف من ${pdf.numPages} صفحة`, 'success');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+        }
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            textResult.select();
+            document.execCommand('copy');
+            showStatus('✅ تم نسخ النص!', 'success');
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const blob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = selectedFile.name.replace('.pdf', '') + '.txt';
+            a.click();
+        });
+    </script>
+</body>
+</html>
