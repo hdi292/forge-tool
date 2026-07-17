@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح PDF | فورج دول</title>
+    <meta name="description" content="حاول إصلاح ملفات PDF التالفة مجاناً أونلاين.">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <style>
+        .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
+        .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="tool-page">
+        <div class="tool-hero">
+            <div style="font-size: 64px; margin-bottom: 16px;">🔧</div>
+            <h1>إصلاح ملف PDF</h1>
+            <p>حاول إعادة بناء ملف PDF تالف. يحفظ كل الصفحات اللي يقدر يقرأها.</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
+            <h2>اسحب ملف PDF التالف هنا</h2>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="repairBtn" disabled>إصلاح الملف</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const repairBtn = document.getElementById('repairBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+                selectedFile = e.dataTransfer.files[0];
+                onFileSelected();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.type === 'application/pdf') {
+                selectedFile = e.target.files[0];
+                onFileSelected();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        function onFileSelected() {
+            dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>${(selectedFile.size/1024).toFixed(1)} KB</p>`;
+            repairBtn.disabled = false;
+        }
+
+        repairBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            repairBtn.disabled = true;
+            showStatus('⏳ جاري الإصلاح...', 'info');
+
+            try {
+                // Strategy: Use pdf.js to read all pages, render to images, then rebuild
+                const bytes = await selectedFile.arrayBuffer();
+                let pdf;
+                try {
+                    pdf = await pdfjsLib.getDocument({ data: bytes, isEvalSupported: false, disableFontFace: true }).promise;
+                } catch (e) {
+                    throw new Error('الملف تالف بشكل كبير ولا يمكن إصلاحه');
+                }
+
+                const { PDFDocument } = PDFLib;
+                const newPdf = await PDFDocument.create();
+                let repaired = 0;
+                let failed = 0;
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    try {
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas');
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+                        const imgBytes = await blob.arrayBuffer();
+                        const img = await newPdf.embedJpg(imgBytes);
+                        const newPage = newPdf.addPage([img.width, img.height]);
+                        newPage.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+                        repaired++;
+                        showStatus(`⏳ إصلاح الصفحة ${i} من ${pdf.numPages}...`, 'info');
+                    } catch (e) {
+                        failed++;
+                    }
+                }
+
+                if (repaired === 0) throw new Error('لا يمكن قراءة أي صفحة');
+
+                const out = await newPdf.save();
+                const blob = new Blob([out], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'repaired-' + selectedFile.name;
+                a.click();
+
+                showStatus(`✅ تم إصلاح ${repaired} صفحة${failed > 0 ? ` (${failed} فشلت)` : ''}!`, 'success');
+            } catch (err) {
+                showStatus('❌ ' + err.message, 'error');
+            }
+            repairBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
