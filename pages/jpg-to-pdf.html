@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صور JPG إلى PDF | فورج دول</title>
+    <meta name="description" content="حوّل صور JPG و PNG إلى ملف PDF مجاناً أونلاين.">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
+        .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: #faf5ff; }
+        .files-list { margin: 20px 0; }
+        .file-item { background: white; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+        .file-item .file-name { flex: 1; font-weight: 600; }
+        .file-item .remove-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="tool-page">
+        <div class="tool-hero">
+            <div style="font-size: 64px; margin-bottom: 16px;">🖼️</div>
+            <h1>صور إلى PDF</h1>
+            <p>حوّل صور JPG و PNG إلى ملف PDF واحد. كل المعالجة في متصفحك.</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
+            <h2>اسحب الصور هنا أو اضغط للاختيار</h2>
+            <p>يدعم JPG, PNG - يمكنك إضافة عدة صور</p>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple style="display:none">
+        </div>
+
+        <div class="files-list" id="filesList"></div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="convertBtn" disabled>تحويل إلى PDF</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const filesList = document.getElementById('filesList');
+        const convertBtn = document.getElementById('convertBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFiles = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (file.type === 'image/jpeg' || file.type === 'image/png') {
+                    selectedFiles.push(file);
+                }
+            }
+            renderFiles();
+        }
+
+        function renderFiles() {
+            filesList.innerHTML = '';
+            selectedFiles.forEach((file, idx) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<span>🖼️</span><span class="file-name">${idx + 1}. ${file.name}</span><button class="remove-btn" onclick="removeFile(${idx})">حذف</button>`;
+                filesList.appendChild(item);
+            });
+            convertBtn.disabled = selectedFiles.length === 0;
+            convertBtn.textContent = selectedFiles.length === 0 ? 'اختر صور أولاً' : `تحويل ${selectedFiles.length} صور إلى PDF`;
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            renderFiles();
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        convertBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+            convertBtn.disabled = true;
+            showStatus('⏳ جاري التحويل...', 'info');
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const pdf = await PDFDocument.create();
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const bytes = await selectedFiles[i].arrayBuffer();
+                    let img;
+                    if (selectedFiles[i].type === 'image/png') {
+                        img = await pdf.embedPng(bytes);
+                    } else {
+                        img = await pdf.embedJpg(bytes);
+                    }
+                    const page = pdf.addPage([img.width, img.height]);
+                    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+                    showStatus(`⏳ معالجة ${i + 1} من ${selectedFiles.length}...`, 'info');
+                }
+
+                const out = await pdf.save();
+                const blob = new Blob([out], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'images.pdf';
+                a.click();
+
+                showStatus(`✅ تم إنشاء PDF من ${selectedFiles.length} صورة!`, 'success');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+            convertBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
