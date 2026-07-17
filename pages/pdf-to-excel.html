@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF إلى Excel مجاناً | فورج دول</title>
-    <meta name="description" content="حوّل PDF إلى جدول Excel مجاناً أونلاين.">
+    <meta name="description" content="استخرج النص من PDF إلى ملف Excel مجاناً أونلاين.">
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
@@ -42,7 +42,7 @@
         <div class="tool-hero">
             <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
             <h1>PDF إلى Excel</h1>
-            <p>استخرج الجداول من PDF إلى ملف Excel (.xlsx).</p>
+            <p>استخرج النص من PDF واحفظه كملف Excel (.xlsx). كل صفحة في عمود منفصل.</p>
         </div>
 
         <div class="upload-zone" id="dropZone">
@@ -54,7 +54,7 @@
         <div class="status" id="status"></div>
 
         <div style="text-align: center; margin: 20px 0;">
-            <button class="action-btn" id="convertBtn" disabled>تحويل إلى Excel</button>
+            <button class="action-btn" id="convertBtn" disabled>تصدير إلى Excel</button>
         </div>
     </main>
 
@@ -106,18 +106,19 @@
         convertBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
             convertBtn.disabled = true;
-            showStatus('⏳ جاري التحويل...', 'info');
+            showStatus('⏳ جاري استخراج النص...', 'info');
 
             try {
                 const bytes = await selectedFile.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
 
-                const allRows = [];
+                // Build table: column 1 = page number, column 2 = full text
+                const allRows = [['رقم الصفحة', 'النص']];
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
 
-                    // Group text items by Y position (line)
+                    // Group by line (Y position)
                     const lines = {};
                     textContent.items.forEach(item => {
                         const y = Math.round(item.transform[5]);
@@ -125,23 +126,25 @@
                         lines[y].push({ x: item.transform[4], str: item.str });
                     });
 
-                    // Sort lines top to bottom, words left to right
                     const sortedYs = Object.keys(lines).map(Number).sort((a, b) => b - a);
-                    for (const y of sortedYs) {
-                        const lineText = lines[y].sort((a, b) => a.x - b.x).map(w => w.str).join(' ');
-                        allRows.push([lineText]);
-                    }
+                    const pageLines = sortedYs.map(y => {
+                        return lines[y].sort((a, b) => a.x - b.x).map(w => w.str).join(' ').trim();
+                    }).filter(l => l);
+
+                    allRows.push([`صفحة ${i}`, pageLines.join('\n')]);
                     showStatus(`⏳ معالجة الصفحة ${i} من ${pdf.numPages}...`, 'info');
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(allRows);
+                ws['!cols'] = [{ wch: 12 }, { wch: 80 }];
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'PDF Data');
                 XLSX.writeFile(wb, selectedFile.name.replace('.pdf', '') + '.xlsx');
 
-                showStatus(`✅ تم تصدير ${allRows.length} صف إلى Excel!`, 'success');
+                showStatus(`✅ تم تصدير ${pdf.numPages} صفحة إلى Excel!`, 'success');
             } catch (err) {
                 showStatus('❌ خطأ: ' + err.message, 'error');
+                console.error(err);
             }
             convertBtn.disabled = false;
         });
