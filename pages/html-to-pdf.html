@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTML إلى PDF مجاناً | فورج دول</title>
-    <meta name="description" content="حوّل صفحات HTML أو رابط موقع إلى PDF مجاناً أونلاين.">
+    <meta name="description" content="حوّل كود HTML إلى PDF مجاناً أونلاين. كل المعالجة في متصفحك.">
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -12,14 +12,10 @@
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
         .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .tab { padding: 12px 20px; background: white; border-radius: 10px; cursor: pointer; font-weight: 600; border: 2px solid #e5e7eb; }
-        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
         .form-group { background: white; padding: 20px; border-radius: 12px; margin: 16px 0; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 8px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-family: inherit; font-size: 15px; box-sizing: border-box; }
-        .form-group textarea { min-height: 250px; font-family: monospace; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+        .form-group textarea { width: 100%; padding: 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; box-sizing: border-box; min-height: 280px; resize: vertical; }
+        .form-group textarea:focus { outline: none; border-color: var(--primary); }
         .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
         .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
         .status.info { background: #dbeafe; color: #1e40af; display: block; }
@@ -46,31 +42,27 @@
         <div class="tool-hero">
             <div style="font-size: 64px; margin-bottom: 16px;">🌐</div>
             <h1>HTML إلى PDF</h1>
-            <p>حوّل أي محتوى HTML أو رابط إلى PDF. كل المعالجة في متصفحك.</p>
+            <p>الصق كود HTML واحصل على PDF فوراً. كل المعالجة في متصفحك.</p>
         </div>
 
-        <div class="tabs">
-            <div class="tab active" data-tab="code">كود HTML</div>
-            <div class="tab" data-tab="url">رابط URL</div>
-        </div>
-
-        <div id="codeTab" class="form-group">
+        <div class="form-group">
             <label>الصق كود HTML هنا:</label>
-            <textarea id="htmlCode" placeholder="<h1>مرحبا</h1><p>محتوى الصفحة</p>">&lt;h1 style="color: #8b5cf6; text-align: center;"&gt;مستند من فورج دول&lt;/h1&gt;
+            <textarea id="htmlCode">&lt;h1 style="color: #8b5cf6; text-align: center; font-family: Arial;"&gt;مستند من فورج دول&lt;/h1&gt;
 &lt;h2&gt;مقدمة&lt;/h2&gt;
-&lt;p&gt;هذا مستند تجريبي تم إنشاؤه من HTML.&lt;/p&gt;
+&lt;p&gt;هذا مستند تجريبي تم إنشاؤه من HTML وحفظه كـ PDF.&lt;/p&gt;
 &lt;h2&gt;قائمة الميزات&lt;/h2&gt;
 &lt;ul&gt;
-  &lt;li&gt;تحويل سريع&lt;/li&gt;
-  &lt;li&gt;دعم اللغة العربية&lt;/li&gt;
+  &lt;li&gt;تحويل سريع في المتصفح&lt;/li&gt;
+  &lt;li&gt;دعم كامل للعربية&lt;/li&gt;
   &lt;li&gt;مجاني 100%&lt;/li&gt;
-&lt;/ul&gt;</textarea>
-        </div>
-
-        <div id="urlTab" class="form-group" style="display:none">
-            <label>أدخل رابط URL:</label>
-            <input type="url" id="urlInput" placeholder="https://example.com" value="https://hdi292.github.io/forge-tool/">
-            <p style="color: #6b7280; font-size: 13px; margin-top: 8px;">⚠️ بعض المواقع قد لا تعمل بسبب قيود CORS</p>
+&lt;/ul&gt;
+&lt;h2&gt;جدول بيانات&lt;/h2&gt;
+&lt;table border="1" cellpadding="6" style="border-collapse: collapse;"&gt;
+  &lt;tr style="background: #f3f4f6;"&gt;&lt;th&gt;الأداة&lt;/th&gt;&lt;th&gt;الحالة&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;دمج PDF&lt;/td&gt;&lt;td&gt;✅&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;ضغط PDF&lt;/td&gt;&lt;td&gt;✅&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;تحويل&lt;/td&gt;&lt;td&gt;✅&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</textarea>
         </div>
 
         <div class="status" id="status"></div>
@@ -89,20 +81,8 @@
     </footer>
 
     <script>
-        const tabs = document.querySelectorAll('.tab');
-        const codeTab = document.getElementById('codeTab');
-        const urlTab = document.getElementById('urlTab');
         const statusDiv = document.getElementById('status');
         const convertBtn = document.getElementById('convertBtn');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                codeTab.style.display = tab.dataset.tab === 'code' ? 'block' : 'none';
-                urlTab.style.display = tab.dataset.tab === 'url' ? 'block' : 'none';
-            });
-        });
 
         function showStatus(msg, type) {
             statusDiv.className = `status ${type}`;
@@ -110,41 +90,35 @@
         }
 
         convertBtn.addEventListener('click', async () => {
-            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            const html = document.getElementById('htmlCode').value;
+            if (!html.trim()) {
+                showStatus('⚠️ اكتب كود HTML أولاً', 'error');
+                return;
+            }
             convertBtn.disabled = true;
             showStatus('⏳ جاري التحويل...', 'info');
 
             try {
-                let element;
-                if (activeTab === 'code') {
-                    const html = document.getElementById('htmlCode').value;
-                    element = document.createElement('div');
-                    element.innerHTML = html;
-                    element.style.padding = '40px';
-                    element.style.fontFamily = 'Cairo, sans-serif';
-                    element.style.direction = 'rtl';
-                    document.body.appendChild(element);
-                } else {
-                    const url = document.getElementById('urlInput').value;
-                    if (!url) throw new Error('أدخل رابط صحيح');
-                    showStatus('⏳ جاري تحميل الصفحة...', 'info');
-                    try {
-                        const response = await fetch(url);
-                        const html = await response.text();
-                        element = document.createElement('div');
-                        element.innerHTML = html;
-                        element.style.padding = '20px';
-                        document.body.appendChild(element);
-                    } catch (err) {
-                        throw new Error('لا يمكن تحميل هذا الرابط. جرّب كود HTML بدلاً من ذلك.');
-                    }
-                }
+                // Create a temporary element
+                const element = document.createElement('div');
+                element.innerHTML = html;
+                element.style.padding = '30px';
+                element.style.background = 'white';
+                element.style.color = 'black';
+                element.style.fontFamily = 'Cairo, Arial, sans-serif';
+                element.style.direction = 'rtl';
+                element.style.textAlign = 'right';
+                element.style.position = 'absolute';
+                element.style.left = '-9999px';
+                element.style.top = '0';
+                element.style.width = '800px';
+                document.body.appendChild(element);
 
                 await html2pdf().set({
                     margin: 10,
                     filename: 'converted.pdf',
                     image: { type: 'jpeg', quality: 0.95 },
-                    html2canvas: { scale: 2, useCORS: true },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 }).from(element).save();
 
@@ -152,6 +126,7 @@
                 showStatus('✅ تم التحويل بنجاح!', 'success');
             } catch (err) {
                 showStatus('❌ خطأ: ' + err.message, 'error');
+                console.error(err);
             }
             convertBtn.disabled = false;
         });
