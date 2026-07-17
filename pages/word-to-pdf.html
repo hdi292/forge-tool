@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
@@ -80,15 +80,23 @@
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files[0]?.name.endsWith('.docx')) {
-                selectedFile = e.dataTransfer.files[0];
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.docx')) {
+                selectedFile = file;
                 onFileSelected();
+            } else {
+                showStatus('⚠️ لازم يكون الملف بصيغة .docx', 'error');
             }
         });
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files[0]?.name.endsWith('.docx')) {
-                selectedFile = e.target.files[0];
-                onFileSelected();
+            const file = e.target.files[0];
+            if (file) {
+                if (file.name.endsWith('.docx')) {
+                    selectedFile = file;
+                    onFileSelected();
+                } else {
+                    showStatus('⚠️ لازم يكون الملف بصيغة .docx', 'error');
+                }
             }
         });
 
@@ -100,41 +108,53 @@
         function onFileSelected() {
             dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>${(selectedFile.size/1024).toFixed(1)} KB</p>`;
             convertBtn.disabled = false;
+            showStatus('', 'info');
         }
 
         convertBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
             convertBtn.disabled = true;
-            showStatus('⏳ جاري التحويل...', 'info');
+            showStatus('⏳ جاري استخراج النص وتحويله...', 'info');
 
             try {
                 const arrayBuffer = await selectedFile.arrayBuffer();
                 const result = await mammoth.extractRawText({ arrayBuffer });
                 const text = result.value;
+                const messages = result.messages;
+
+                if (!text.trim()) {
+                    throw new Error('لم يتم العثور على نص في الملف');
+                }
 
                 const { PDFDocument, StandardFonts, rgb } = PDFLib;
                 const pdf = await PDFDocument.create();
                 const font = await pdf.embedFont(StandardFonts.Helvetica);
 
                 const fontSize = 11;
-                const lineHeight = fontSize * 1.5;
-                const pageWidth = 595.28; // A4
+                const lineHeight = fontSize * 1.6;
+                const pageWidth = 595.28;
                 const pageHeight = 841.89;
-                const margin = 50;
+                const margin = 60;
                 const maxWidth = pageWidth - 2 * margin;
 
-                const paragraphs = text.split('\n').filter(p => p.trim());
+                const paragraphs = text.split('\n').filter(p => p.trim() !== '');
                 let page = pdf.addPage([pageWidth, pageHeight]);
                 let y = pageHeight - margin;
 
                 for (const para of paragraphs) {
-                    // Simple word wrap
-                    const words = para.split(' ');
+                    const words = para.split(/\s+/);
                     let line = '';
+
                     for (const word of words) {
                         const testLine = line ? line + ' ' + word : word;
-                        const width = font.widthOfTextAtSize(testLine, fontSize);
-                        if (width > maxWidth) {
+                        let width;
+                        try {
+                            width = font.widthOfTextAtSize(testLine, fontSize);
+                        } catch {
+                            width = testLine.length * fontSize * 0.5;
+                        }
+
+                        if (width > maxWidth && line) {
                             if (y < margin + lineHeight) {
                                 page = pdf.addPage([pageWidth, pageHeight]);
                                 y = pageHeight - margin;
@@ -146,6 +166,7 @@
                             line = testLine;
                         }
                     }
+
                     if (line) {
                         if (y < margin + lineHeight) {
                             page = pdf.addPage([pageWidth, pageHeight]);
@@ -154,7 +175,7 @@
                         page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0, 0, 0) });
                         y -= lineHeight;
                     }
-                    y -= lineHeight / 2; // paragraph spacing
+                    y -= lineHeight / 2;
                     if (y < margin + lineHeight) {
                         page = pdf.addPage([pageWidth, pageHeight]);
                         y = pageHeight - margin;
@@ -168,9 +189,10 @@
                 a.download = selectedFile.name.replace('.docx', '') + '.pdf';
                 a.click();
 
-                showStatus('✅ تم التحويل بنجاح!', 'success');
+                showStatus(`✅ تم التحويل بنجاح! ${paragraphs.length} فقرة`, 'success');
             } catch (err) {
                 showStatus('❌ خطأ: ' + err.message, 'error');
+                console.error(err);
             }
             convertBtn.disabled = false;
         });
