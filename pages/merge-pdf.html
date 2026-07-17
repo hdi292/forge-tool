@@ -9,26 +9,38 @@
     <link rel="canonical" href="https://hdi292.github.io/forge-tool/pages/merge-pdf.html">
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 40px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
         .tool-hero .icon { font-size: 64px; margin-bottom: 16px; }
         .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
         .tool-hero p { font-size: 17px; color: #6b7280; max-width: 700px; margin: 0 auto; line-height: 1.7; }
-        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 60px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 30px 0; }
-        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: #faf5ff; transform: scale(1.01); }
         .upload-zone .icon-upload { font-size: 56px; margin-bottom: 16px; opacity: 0.6; }
         .upload-zone h2 { font-size: 22px; margin-bottom: 8px; color: var(--black); }
         .upload-zone p { color: #6b7280; }
-        .how-it-works { background: white; padding: 40px; border-radius: 20px; margin: 30px 0; }
-        .how-it-works h2 { text-align: center; margin-bottom: 30px; }
-        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+        .files-list { margin: 20px 0; }
+        .file-item { background: white; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+        .file-item .file-icon { font-size: 24px; }
+        .file-item .file-name { flex: 1; font-weight: 600; }
+        .file-item .file-size { color: #6b7280; font-size: 14px; }
+        .file-item .remove-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 8px 24px rgba(139,92,246,0.35); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .action-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+        .how-it-works { background: white; padding: 30px; border-radius: 20px; margin: 30px 0; }
+        .how-it-works h2 { text-align: center; margin-bottom: 20px; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
         .step { text-align: center; }
-        .step-num { width: 50px; height: 50px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; margin: 0 auto 14px; }
-        .step h3 { font-size: 17px; margin-bottom: 8px; }
-        .step p { font-size: 14px; color: #6b7280; }
-        .faq-section { background: white; padding: 40px; border-radius: 20px; margin: 30px 0; }
-        .faq-section h2 { text-align: center; margin-bottom: 30px; }
+        .step-num { width: 44px; height: 44px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin: 0 auto 12px; }
+        .step h3 { font-size: 15px; margin-bottom: 6px; }
+        .step p { font-size: 13px; color: #6b7280; }
     </style>
 </head>
 <body>
@@ -50,13 +62,22 @@
         <div class="tool-hero">
             <div class="icon">📄</div>
             <h1>دمج ملفات PDF</h1>
-            <p>ادمج عدة ملفات PDF في ملف واحد بسهولة وسرعة. كل المعالجة في متصفحك - ملفاتك آمنة 100%.</p>
+            <p>ادمج عدة ملفات PDF في ملف واحد. كل المعالجة في متصفحك - ملفاتك آمنة 100%.</p>
         </div>
 
-        <div class="upload-zone" onclick="alert('قريباً: ارفع ملفاتك هنا')">
+        <div class="upload-zone" id="dropZone">
             <div class="icon-upload">📁</div>
             <h2>اسحب الملفات هنا أو اضغط للاختيار</h2>
-            <p>يدعم ملفات PDF فقط - بدون حد أقصى</p>
+            <p>يدعم ملفات PDF فقط - يمكنك إضافة عدة ملفات</p>
+            <input type="file" id="fileInput" accept="application/pdf" multiple style="display:none">
+        </div>
+
+        <div class="files-list" id="filesList"></div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="mergeBtn" disabled>دمج الملفات</button>
         </div>
 
         <div class="how-it-works">
@@ -65,12 +86,12 @@
                 <div class="step">
                     <div class="step-num">1</div>
                     <h3>ارفع الملفات</h3>
-                    <p>اختر كل ملفات PDF اللي عايز تدمجها من جهازك</p>
+                    <p>اختر كل ملفات PDF اللي عايز تدمجها</p>
                 </div>
                 <div class="step">
                     <div class="step-num">2</div>
-                    <h3>رتّبها</h3>
-                    <p>اسحب وأفلت لإعادة ترتيب الملفات حسب الطلب</p>
+                    <h3>رتبها</h3>
+                    <p>الملفات هتدمج بالترتيب اللي رفعتها به</p>
                 </div>
                 <div class="step">
                     <div class="step-num">3</div>
@@ -80,17 +101,9 @@
                 <div class="step">
                     <div class="step-num">4</div>
                     <h3>حمّل النتيجة</h3>
-                    <p>حمّل ملف PDF الموحد على جهازك</p>
+                    <p>حمّل ملف PDF الموحد</p>
                 </div>
             </div>
-        </div>
-
-        <div class="faq-section">
-            <h2>أسئلة شائعة</h2>
-            <h3>هل دمج PDF مجاني؟</h3>
-            <p>نعم، الأداة مجانية بالكامل وبدون أي قيود على عدد الملفات.</p>
-            <h3>هل تحتفظون بملفاتي؟</h3>
-            <p>لا، كل المعالجة تتم في متصفحك. ملفاتك لا تغادر جهازك أبداً.</p>
         </div>
     </main>
 
@@ -101,5 +114,97 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const filesList = document.getElementById('filesList');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFiles = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (file.type === 'application/pdf') {
+                    selectedFiles.push(file);
+                }
+            }
+            renderFiles();
+        }
+
+        function renderFiles() {
+            filesList.innerHTML = '';
+            selectedFiles.forEach((file, idx) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">${idx + 1}. ${file.name}</span>
+                    <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
+                    <button class="remove-btn" onclick="removeFile(${idx})">حذف</button>
+                `;
+                filesList.appendChild(item);
+            });
+            mergeBtn.disabled = selectedFiles.length < 2;
+            mergeBtn.textContent = selectedFiles.length < 2
+                ? 'دمج الملفات (تحتاج ملفين على الأقل)'
+                : `دمج ${selectedFiles.length} ملفات`;
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            renderFiles();
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        mergeBtn.addEventListener('click', async () => {
+            if (selectedFiles.length < 2) return;
+            mergeBtn.disabled = true;
+            showStatus('⏳ جاري الدمج...', 'info');
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const mergedPdf = await PDFDocument.create();
+
+                for (const file of selectedFiles) {
+                    const bytes = await file.arrayBuffer();
+                    const pdf = await PDFDocument.load(bytes);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                }
+
+                const mergedBytes = await mergedPdf.save();
+                const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'merged.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                showStatus('✅ تم الدمج بنجاح! تم تحميل الملف.', 'success');
+            } catch (err) {
+                showStatus('❌ حدث خطأ: ' + err.message, 'error');
+            }
+            mergeBtn.disabled = false;
+        });
+    </script>
 </body>
 </html>
