@@ -25,18 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-    });
-
-    // Demo handler for tool cards (will be wired to real backends later)
-    document.querySelectorAll('.tool-card, .all-tool').forEach(card => {
-        card.addEventListener('click', (e) => {
-            e.preventDefault();
-            const name = card.querySelector('h3')?.innerText
-                || card.querySelector('span')?.innerText
-                || 'هذه الأداة';
-            showToast(`🚧 ${name} - قريباً!`);
-        });
-    });
+   
+});
 
     function showToast(message) {
         const existing = document.querySelector('.toast');
