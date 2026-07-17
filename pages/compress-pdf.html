@@ -4,15 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ضغط ملف PDF مجاناً | فورج دول</title>
-    <meta name="description" content="اضغط ملفات PDF لتقليل حجمها مع الحفاظ على الجودة. أداة مجانية لضغط PDF أونلاين بدون فقدان.">
+    <meta name="description" content="اضغط ملفات PDF لتقليل حجمها مجاناً أونلاين. تحافظ على الجودة.">
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 40px; }
-        .tool-hero .icon { font-size: 64px; margin-bottom: 16px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
         .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
-        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 60px 30px; text-align: center; cursor: pointer; margin: 30px 0; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .options { background: white; padding: 24px; border-radius: 16px; margin: 20px 0; }
+        .options h3 { margin-bottom: 16px; }
+        .option-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .option-row:hover { background: #f9fafb; }
+        .option-row input[type="radio"] { transform: scale(1.3); }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
     </style>
 </head>
 <body>
@@ -34,14 +47,38 @@
         <div class="tool-hero">
             <div style="font-size: 64px; margin-bottom: 16px;">🗜️</div>
             <h1>ضغط ملف PDF</h1>
-            <p>قلل حجم ملف PDF بشكل كبير مع الحفاظ على جودة المستند. اضغط حتى 90% من الحجم الأصلي.</p>
+            <p>قلل حجم ملف PDF مع الحفاظ على الجودة. كل المعالجة في متصفحك.</p>
         </div>
 
-        <div class="upload-zone" onclick="alert('قريباً')">
+        <div class="upload-zone" id="dropZone">
             <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
-            <h2 style="font-size: 22px; margin-bottom: 8px;">ارفع ملفك للضغط</h2>
-            <p style="color: #6b7280;">3 مستويات ضغط: خفيف، متوسط، قوي</p>
+            <h2>اسحب ملف PDF هنا أو اضغط للاختيار</h2>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
         </div>
+
+        <div class="options" id="options" style="display:none">
+            <h3>مستوى الضغط:</h3>
+            <div class="option-row">
+                <input type="radio" name="level" value="low" id="low" checked>
+                <label for="low"><strong>خفيف</strong> - تقليل بسيط مع جودة عالية (موصى به للمستندات النصية)</label>
+            </div>
+            <div class="option-row">
+                <input type="radio" name="level" value="medium" id="medium">
+                <label for="medium"><strong>متوسط</strong> - توازن بين الحجم والجودة</label>
+            </div>
+            <div class="option-row">
+                <input type="radio" name="level" value="high" id="high">
+                <label for="high"><strong>قوي</strong> - ضغط أقصى (قد يؤثر على جودة الصور)</label>
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="compressBtn" disabled>اضغط الملف</button>
+        </div>
+
+        <div class="status" id="result"></div>
     </main>
 
     <footer class="footer">
@@ -51,5 +88,105 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const optionsDiv = document.getElementById('options');
+        const compressBtn = document.getElementById('compressBtn');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+                selectedFile = e.dataTransfer.files[0];
+                onFileSelected();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.type === 'application/pdf') {
+                selectedFile = e.target.files[0];
+                onFileSelected();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+        function showResult(msg, type) {
+            resultDiv.className = `status ${type}`;
+            resultDiv.innerHTML = msg;
+        }
+
+        function onFileSelected() {
+            dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>الحجم الأصلي: ${(selectedFile.size/1024).toFixed(1)} KB</p>`;
+            optionsDiv.style.display = 'block';
+            compressBtn.disabled = false;
+        }
+
+        compressBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            compressBtn.disabled = true;
+            const level = document.querySelector('input[name="level"]:checked').value;
+            showStatus('⏳ جاري الضغط... قد يستغرق دقيقة', 'info');
+            resultDiv.style.display = 'none';
+
+            try {
+                const bytes = await selectedFile.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+
+                // Render each page to image, then rebuild PDF (this dramatically reduces size)
+                const { PDFDocument } = PDFLib;
+                const newPdf = await PDFDocument.create();
+
+                const quality = level === 'low' ? 0.85 : level === 'medium' ? 0.7 : 0.5;
+                const scale = level === 'low' ? 1.5 : level === 'medium' ? 1.2 : 1.0;
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+
+                    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+                    const imgBytes = await blob.arrayBuffer();
+                    const img = await newPdf.embedJpg(imgBytes);
+                    const newPage = newPdf.addPage([viewport.width, viewport.height]);
+                    newPage.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+
+                    showStatus(`⏳ معالجة الصفحة ${i} من ${pdf.numPages}...`, 'info');
+                }
+
+                const out = await newPdf.save({ useObjectStreams: true });
+                const originalSize = selectedFile.size;
+                const newSize = out.length;
+                const saved = (((originalSize - newSize) / originalSize) * 100).toFixed(1);
+
+                const downloadBlob = new Blob([out], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(downloadBlob);
+                a.download = 'compressed-' + selectedFile.name;
+                a.click();
+
+                showResult(`✅ <strong>تم الضغط بنجاح!</strong><br>الحجم الأصلي: ${(originalSize/1024).toFixed(1)} KB<br>الحجم الجديد: ${(newSize/1024).toFixed(1)} KB<br>التوفير: ${saved}%`, 'success');
+                showStatus('', 'info');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+            compressBtn.disabled = false;
+        });
+    </script>
 </body>
 </html>
