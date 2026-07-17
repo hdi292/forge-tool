@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word إلى PDF مجاناً | فورج دول</title>
+    <meta name="description" content="حوّل مستندات Word إلى PDF مجاناً أونلاين. يدعم DOCX.">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
+        .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="tool-page">
+        <div class="tool-hero">
+            <div style="font-size: 64px; margin-bottom: 16px;">📝</div>
+            <h1>Word إلى PDF</h1>
+            <p>حوّل مستندات Word (DOCX) إلى PDF. كل المعالجة في متصفحك.</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
+            <h2>اسحب ملف Word هنا</h2>
+            <p>يدعم صيغة .docx</p>
+            <input type="file" id="fileInput" accept=".docx" style="display:none">
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="convertBtn" disabled>تحويل إلى PDF</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const convertBtn = document.getElementById('convertBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.name.endsWith('.docx')) {
+                selectedFile = e.dataTransfer.files[0];
+                onFileSelected();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.name.endsWith('.docx')) {
+                selectedFile = e.target.files[0];
+                onFileSelected();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        function onFileSelected() {
+            dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>${(selectedFile.size/1024).toFixed(1)} KB</p>`;
+            convertBtn.disabled = false;
+        }
+
+        convertBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            convertBtn.disabled = true;
+            showStatus('⏳ جاري التحويل...', 'info');
+
+            try {
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                const text = result.value;
+
+                const { PDFDocument, StandardFonts, rgb } = PDFLib;
+                const pdf = await PDFDocument.create();
+                const font = await pdf.embedFont(StandardFonts.Helvetica);
+
+                const fontSize = 11;
+                const lineHeight = fontSize * 1.5;
+                const pageWidth = 595.28; // A4
+                const pageHeight = 841.89;
+                const margin = 50;
+                const maxWidth = pageWidth - 2 * margin;
+
+                const paragraphs = text.split('\n').filter(p => p.trim());
+                let page = pdf.addPage([pageWidth, pageHeight]);
+                let y = pageHeight - margin;
+
+                for (const para of paragraphs) {
+                    // Simple word wrap
+                    const words = para.split(' ');
+                    let line = '';
+                    for (const word of words) {
+                        const testLine = line ? line + ' ' + word : word;
+                        const width = font.widthOfTextAtSize(testLine, fontSize);
+                        if (width > maxWidth) {
+                            if (y < margin + lineHeight) {
+                                page = pdf.addPage([pageWidth, pageHeight]);
+                                y = pageHeight - margin;
+                            }
+                            page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0, 0, 0) });
+                            y -= lineHeight;
+                            line = word;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    if (line) {
+                        if (y < margin + lineHeight) {
+                            page = pdf.addPage([pageWidth, pageHeight]);
+                            y = pageHeight - margin;
+                        }
+                        page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0, 0, 0) });
+                        y -= lineHeight;
+                    }
+                    y -= lineHeight / 2; // paragraph spacing
+                    if (y < margin + lineHeight) {
+                        page = pdf.addPage([pageWidth, pageHeight]);
+                        y = pageHeight - margin;
+                    }
+                }
+
+                const out = await pdf.save();
+                const blob = new Blob([out], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = selectedFile.name.replace('.docx', '') + '.pdf';
+                a.click();
+
+                showStatus('✅ تم التحويل بنجاح!', 'success');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+            convertBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
