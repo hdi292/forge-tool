@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>توقيع PDF | فورج دول</title>
+    <meta name="description" content="أضف توقيعك على ملف PDF مجاناً أونلاين.">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
+        .tool-hero h1 { font-size: 38px; margin-bottom: 12px; }
+        .upload-zone { background: white; border: 3px dashed #d1d5db; border-radius: 20px; padding: 50px 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 20px 0; }
+        .upload-zone:hover { border-color: var(--primary); background: #faf5ff; }
+        .signature-pad { background: white; border: 2px solid #e5e7eb; border-radius: 12px; margin: 16px 0; }
+        .signature-pad canvas { display: block; width: 100%; height: 200px; cursor: crosshair; touch-action: none; }
+        .sig-controls { padding: 12px; display: flex; gap: 8px; justify-content: center; }
+        .sig-btn { padding: 8px 16px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; font-family: inherit; }
+        .sig-btn:hover { background: var(--primary); color: white; }
+        .form-group { background: white; padding: 16px; border-radius: 12px; margin: 12px 0; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; }
+        .form-group input, .form-group select { padding: 10px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .action-btn { display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 16px; border-radius: 12px; margin: 20px 0; display: none; }
+        .status.info { background: #dbeafe; color: #1e40af; display: block; }
+        .status.success { background: #d1fae5; color: #065f46; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="tool-page">
+        <div class="tool-hero">
+            <div style="font-size: 64px; margin-bottom: 16px;">✍️</div>
+            <h1>توقيع PDF</h1>
+            <p>ارسم توقيعك وأضفه على أي صفحة في ملف PDF.</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <div style="font-size: 56px; margin-bottom: 16px;">📁</div>
+            <h2>اسحب ملف PDF هنا</h2>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
+        </div>
+
+        <div id="sigArea" style="display:none">
+            <h3>ارسم توقيعك:</h3>
+            <div class="signature-pad">
+                <canvas id="sigCanvas"></canvas>
+                <div class="sig-controls">
+                    <button class="sig-btn" id="clearSig">مسح</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>أضف التوقيع على صفحة رقم:</label>
+                <input type="number" id="pageNum" min="1" value="1" style="width: 100px;">
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="action-btn" id="signBtn" disabled>حفظ PDF بالتوقيع</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const sigArea = document.getElementById('sigArea');
+        const sigCanvas = document.getElementById('sigCanvas');
+        const signBtn = document.getElementById('signBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFile = null;
+        let drawing = false;
+        let pdfDoc = null;
+
+        // Setup signature canvas
+        const ctx = sigCanvas.getContext('2d');
+        function setupCanvas() {
+            const rect = sigCanvas.getBoundingClientRect();
+            sigCanvas.width = rect.width * 2;
+            sigCanvas.height = rect.height * 2;
+            ctx.scale(2, 2);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        setupCanvas();
+        window.addEventListener('resize', setupCanvas);
+
+        function getPos(e) {
+            const rect = sigCanvas.getBoundingClientRect();
+            const t = e.touches ? e.touches[0] : e;
+            return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        }
+
+        sigCanvas.addEventListener('mousedown', (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        sigCanvas.addEventListener('mousemove', (e) => { if (drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } });
+        sigCanvas.addEventListener('mouseup', () => drawing = false);
+        sigCanvas.addEventListener('mouseleave', () => drawing = false);
+        sigCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
+        sigCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } }, { passive: false });
+        sigCanvas.addEventListener('touchend', () => drawing = false);
+
+        document.getElementById('clearSig').addEventListener('click', () => {
+            ctx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+                selectedFile = e.dataTransfer.files[0];
+                onFileSelected();
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]?.type === 'application/pdf') {
+                selectedFile = e.target.files[0];
+                onFileSelected();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = msg;
+        }
+
+        async function onFileSelected() {
+            dropZone.innerHTML = `<div style="font-size: 24px;">📄</div><h2>${selectedFile.name}</h2><p>${(selectedFile.size/1024).toFixed(1)} KB</p>`;
+            sigArea.style.display = 'block';
+            signBtn.disabled = false;
+            const bytes = await selectedFile.arrayBuffer();
+            const { PDFDocument } = PDFLib;
+            pdfDoc = await PDFDocument.load(bytes);
+            document.getElementById('pageNum').max = pdfDoc.getPageCount();
+        }
+
+        signBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            const pageNum = parseInt(document.getElementById('pageNum').value);
+            signBtn.disabled = true;
+            showStatus('⏳ جاري إضافة التوقيع...', 'info');
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const bytes = await selectedFile.arrayBuffer();
+                const pdf = await PDFDocument.load(bytes);
+                const pages = pdf.getPages();
+                if (pageNum < 1 || pageNum > pages.length) {
+                    throw new Error('رقم الصفحة غير صحيح');
+                }
+
+                const pngBlob = await new Promise(res => sigCanvas.toBlob(res, 'image/png'));
+                const pngBytes = await pngBlob.arrayBuffer();
+                const png = await pdf.embedPng(pngBytes);
+
+                const page = pages[pageNum - 1];
+                const { width, height } = page.getSize();
+                const sigWidth = 150;
+                const sigHeight = (png.height / png.width) * sigWidth;
+
+                page.drawImage(png, {
+                    x: width - sigWidth - 50,
+                    y: 50,
+                    width: sigWidth,
+                    height: sigHeight
+                });
+
+                const out = await pdf.save();
+                const blob = new Blob([out], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'signed-' + selectedFile.name;
+                a.click();
+
+                showStatus('✅ تم إضافة التوقيع بنجاح!', 'success');
+            } catch (err) {
+                showStatus('❌ خطأ: ' + err.message, 'error');
+            }
+            signBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
