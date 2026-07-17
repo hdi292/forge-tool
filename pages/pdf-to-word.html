@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
@@ -42,7 +42,7 @@
         <div class="tool-hero">
             <div style="font-size: 64px; margin-bottom: 16px;">📄</div>
             <h1>PDF إلى Word</h1>
-            <p>حوّل ملف PDF إلى مستند Word (.docx) قابل للتعديل.</p>
+            <p>استخرج النص من ملف PDF واحفظه كمستند Word (.docx) قابل للتعديل.</p>
         </div>
 
         <div class="upload-zone" id="dropZone">
@@ -106,24 +106,30 @@
         convertBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
             convertBtn.disabled = true;
-            showStatus('⏳ جاري التحويل...', 'info');
+            showStatus('⏳ جاري استخراج النص...', 'info');
 
             try {
-                const { Document, Paragraph, TextRun, Packer } = docx;
                 const bytes = await selectedFile.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
 
-                const paragraphs = [];
+                const { Document, Paragraph, TextRun, Packer, AlignmentType } = docx;
+                const children = [];
+
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    paragraphs.push(new Paragraph({ children: [new TextRun(pageText)] }));
-                    paragraphs.push(new Paragraph({ children: [new TextRun('')] }));
+                    const pageText = textContent.items.map(item => item.str).join(' ').trim();
+                    if (pageText) {
+                        children.push(new Paragraph({
+                            children: [new TextRun(pageText)],
+                            alignment: AlignmentType.RIGHT
+                        }));
+                        children.push(new Paragraph({ children: [new TextRun('')] }));
+                    }
                     showStatus(`⏳ معالجة الصفحة ${i} من ${pdf.numPages}...`, 'info');
                 }
 
-                const doc = new Document({ sections: [{ properties: {}, children: paragraphs }] });
+                const doc = new Document({ sections: [{ properties: {}, children }] });
                 const blob = await Packer.toBlob(doc);
 
                 const a = document.createElement('a');
@@ -131,9 +137,10 @@
                 a.download = selectedFile.name.replace('.pdf', '') + '.docx';
                 a.click();
 
-                showStatus('✅ تم التحويل بنجاح!', 'success');
+                showStatus(`✅ تم التحويل بنجاح! ${pdf.numPages} صفحة`, 'success');
             } catch (err) {
                 showStatus('❌ خطأ: ' + err.message, 'error');
+                console.error(err);
             }
             convertBtn.disabled = false;
         });
