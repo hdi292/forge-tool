@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .tool-page { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         .tool-hero { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #faf5ff, #fdf2f8); border-radius: 20px; margin-bottom: 30px; }
@@ -104,26 +104,30 @@
             dropZone.innerHTML = `<div style="font-size: 24px;">📊</div><h2>${file.name}</h2><p>${(file.size/1024).toFixed(1)} KB</p>`;
             showStatus('⏳ جاري قراءة الملف...', 'info');
 
-            const data = await file.arrayBuffer();
-            const workbook = XLSX.read(data);
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            workbookData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                workbookData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-            // Show preview
-            let html = '<table>';
-            workbookData.slice(0, 20).forEach((row, i) => {
-                html += '<tr>' + row.map(cell => `<${i === 0 ? 'th' : 'td'}>${String(cell ?? '').substring(0, 30)}</${i === 0 ? 'th' : 'td'}>`).join('') + '</tr>';
-            });
-            html += '</table>';
-            previewDiv.innerHTML = `<h3>معاينة: ${sheetName}</h3>${html}${workbookData.length > 20 ? `<p>... و ${workbookData.length - 20} صف آخر</p>` : ''}`;
-            previewDiv.style.display = 'block';
-            showStatus(`✅ تم قراءة ${workbookData.length} صف`, 'success');
-            convertBtn.disabled = false;
+                // Show preview
+                let html = '<table>';
+                workbookData.slice(0, 20).forEach((row, i) => {
+                    html += '<tr>' + row.map(cell => `<${i === 0 ? 'th' : 'td'}>${String(cell ?? '').substring(0, 30)}</${i === 0 ? 'th' : 'td'}>`).join('') + '</tr>';
+                });
+                html += '</table>';
+                previewDiv.innerHTML = `<h3>معاينة: ${sheetName}</h3>${html}${workbookData.length > 20 ? `<p>... و ${workbookData.length - 20} صف آخر</p>` : ''}`;
+                previewDiv.style.display = 'block';
+                showStatus(`✅ تم قراءة ${workbookData.length} صف`, 'success');
+                convertBtn.disabled = false;
+            } catch (err) {
+                showStatus('❌ خطأ في قراءة الملف: ' + err.message, 'error');
+            }
         }
 
         convertBtn.addEventListener('click', async () => {
-            if (!workbookData) return;
+            if (!workbookData || workbookData.length === 0) return;
             convertBtn.disabled = true;
             showStatus('⏳ جاري التحويل...', 'info');
 
@@ -133,41 +137,43 @@
                 const font = await pdf.embedFont(StandardFonts.Helvetica);
                 const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-                const pageWidth = 842; // A4 landscape
+                const pageWidth = 842;
                 const pageHeight = 595;
                 const margin = 30;
                 const cellPadding = 4;
-                const cellHeight = 16;
+                const cellHeight = 18;
                 const fontSize = 9;
 
-                if (workbookData.length === 0) {
-                    throw new Error('الملف فارغ');
-                }
-
-                // Calculate column widths
-                const colCount = Math.max(...workbookData.map(r => r.length));
+                const colCount = Math.max(...workbookData.map(r => r.length), 1);
                 const colWidth = (pageWidth - 2 * margin) / colCount;
 
                 let page = pdf.addPage([pageWidth, pageHeight]);
                 let y = pageHeight - margin;
 
                 for (let r = 0; r < workbookData.length; r++) {
-                    if (y < margin + cellHeight) {
+                    if (y < margin + cellHeight + 5) {
                         page = pdf.addPage([pageWidth, pageHeight]);
                         y = pageHeight - margin;
                     }
                     const row = workbookData[r];
                     for (let c = 0; c < colCount; c++) {
-                        const cell = row[c] != null ? String(row[c]).substring(0, 40) : '';
+                        const cellVal = row[c] != null ? String(row[c]).substring(0, 50) : '';
                         const x = margin + c * colWidth;
                         // Cell border
                         page.drawRectangle({
                             x, y: y - cellHeight, width: colWidth, height: cellHeight,
-                            borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.5
+                            borderColor: rgb(0.6, 0.6, 0.6), borderWidth: 0.5
                         });
+                        // Header row background
+                        if (r === 0) {
+                            page.drawRectangle({
+                                x, y: y - cellHeight, width: colWidth, height: cellHeight,
+                                color: rgb(0.93, 0.93, 0.98)
+                            });
+                        }
                         // Cell text
-                        page.drawText(cell, {
-                            x: x + cellPadding, y: y - cellHeight + cellPadding,
+                        page.drawText(cellVal, {
+                            x: x + cellPadding, y: y - cellHeight + 5,
                             size: fontSize, font: r === 0 ? fontBold : font, color: rgb(0, 0, 0)
                         });
                     }
