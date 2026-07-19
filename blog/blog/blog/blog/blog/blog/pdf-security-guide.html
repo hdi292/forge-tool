@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كيف تحمي ملف PDF من الاختراق والسرقة | مدونة فورج دول</title>
+    <meta name="description" content="دليل شامل لحماية ملفات PDF من الاختراق والنسخ غير المشروع، مع نصائح عملية لكل مستوى من مستويات الأمان.">
+    <meta name="keywords" content="حماية PDF من الاختراق, منع نسخ PDF, تشفير بي دي اف, أمان المستندات">
+    <meta name="author" content="فورج دول">
+    <link rel="canonical" href="https://hdi292.github.io/forge-tool/blog/pdf-security-guide.html">
+    <meta property="og:title" content="كيف تحمي ملف PDF من الاختراق والسرقة">
+    <meta property="og:description" content="دليل شامل لحماية ملفات PDF بكل المستويات.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://hdi292.github.io/forge-tool/blog/pdf-security-guide.html">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .post-page { max-width: 820px; margin: 40px auto; padding: 0 20px; }
+        .post-meta { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
+        .post-page h1 { font-size: 38px; line-height: 1.4; margin: 12px 0 24px; }
+        .post-page h2 { font-size: 26px; margin: 36px 0 16px; color: var(--black); }
+        .post-page h3 { font-size: 20px; margin: 24px 0 12px; }
+        .post-page p { font-size: 17px; line-height: 1.9; margin-bottom: 18px; color: #374151; }
+        .post-page ul, .post-page ol { margin: 16px 0 24px 24px; font-size: 17px; line-height: 1.9; color: #374151; }
+        .post-page li { margin-bottom: 10px; }
+        .post-cta { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; padding: 28px; border-radius: 16px; text-align: center; margin: 40px 0; }
+        .post-cta a { display: inline-block; background: white; color: var(--primary); padding: 12px 28px; border-radius: 999px; text-decoration: none; font-weight: 700; margin-top: 12px; }
+        .back-link { display: inline-block; margin: 30px 0; color: var(--primary); text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">📄</div>
+                <span class="logo-text">فورج <span class="logo-accent">دول</span></span>
+            </a>
+            <nav class="nav">
+                <a href="../index.html">الرئيسية</a>
+                <a href="../index.html#tools">الأدوات</a>
+                <a href="../blog.html">المدونة</a>
+                <a href="../pages/contact.html">اتصل بنا</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="post-page">
+        <div class="post-meta">📅 14 يوليو 2026 · ⏱️ 5 دقائق قراءة · 📂 الأمان السيبراني</div>
+        <h1>كيف تحمي ملف PDF من الاختراق والسرقة</h1>
+
+        <p>سنة 2019، اكتشفت إن أحدهم سرق كتاب إلكتروني كنت قد نشرته، وباعه على موقع مقابل 30 دولار. الكتاب كان PDF بسيط بدون أي حماية. الدرس الذي تعلمته؟ أي محتوى رقمي بدون حماية، قابل للسرقة في ثوانٍ.</p>
+
+        <p>اليوم، أشاركك كل ما تعلمته عن حماية PDF، من الأساسيات إلى المستويات المتقدمة.</p>
+
+        <h2>أنواع التهديدات التي يجب أن تعرفها</h2>
+        <p>قبل ما نحمي، خلينا نفهم وش ممكن يصير لملفات PDF:</p>
+        <ul>
+            <li>🔓 <strong>الوصول غير المصرح:</strong> أي شخص يفتح الملف بدون إذن</li>
+            <li>📋 <strong>النسخ:</strong> ناس تنسخ المحتوى وتنشره بدون إذنك</li>
+            <li>🖨️ <strong>الطباعة:</strong> طباعة آلاف النسخ وبيعها</li>
+            <li>✏️ <strong>التعديل:</strong> تغيير المحتوى ونسبه لك</li>
+            <li>📤 <strong>إعادة التوزيع:</strong> مشاركته في مجموعات أو مواقع</li>
+        </ul>
+
+        <h2>المستوى 1: الحماية بكلمة سر (الأساسية)</h2>
+        <p>هذي أبسط طريقة وأكثرها شيوعاً. نوعين من كلمات السر:</p>
+
+        <h3>كلمة سر الفتح</h3>
+        <p>بدونها، ما أحد يقدر يفتح الملف. هذي أقوى حماية، لأن أي شخص ما عنده الكلمة ما يقدر يرى المحتوى نهائياً.</p>
+
+        <h3>كلمة سر الصلاحيات</h3>
+        <p>الكل يقدر يفتح الملف، لكن بدون كلمة السر، ما يقدر يعدل، يطبع، أو ينسخ. هذي مفيدة إذا تبي الملف متاح للقراءة، لكن محمي من النسخ.</p>
+
+        <p>أداة حماية PDF في موقعنا تدعم النوعين، وتستخدم تشفير 256-bit AES (أقوى مستوى متاح).</p>
+
+        <h2>المستوى 2: تحديد الصلاحيات</h2>
+        <p>حتى بدون كلمة سر، تقدر تحدد صلاحيات:</p>
+        <ul>
+            <li>🚫 <strong>منع الطباعة:</strong> أحد يقدر يقرأ، لكن ما يقدر يطبع</li>
+            <li>🚫 <strong>منع النسخ:</strong> لا يمكن تحديد النص ونسخه</li>
+            <li>🚫 <strong>منع التعديل:</strong> لا يمكن تغيير أي شي في المستند</li>
+            <li>🚫 <strong>منع التعليقات:</strong> لا يمكن إضافة ملاحظات</li>
+        </ul>
+
+        <p>هذي الصلاحيات "حماية ضعيفة" — أي شخص خبير يقدر يتجاوزها. لكنها كافية لمنع المستخدمين العاديين من النسخ.</p>
+
+        <h2>المستوى 3: العلامة المائية (الأمان البصري)</h2>
+        <p>العلامة المائية لا تمنع النسخ، لكنها تكشف من سرّب المحتوى. أضيف اسم المشتري أو إيميله، فتظهر العلامة في كل صفحة:</p>
+        <ul>
+            <li>"نسخة خاصة بـ أحمد" — واضح لكن غير مزعج</li>
+            <li>"سري ومحدود" — ينبه الناس إنها وثيقة حساسة</li>
+            <li>"محمي بحقوق الطبع والنشر 2026" — تذكير قانوني</li>
+        </ul>
+
+        <p>أدوات مثل إضافة علامة مائية في موقعنا تسويها في ثوانٍ.</p>
+
+        <div class="post-cta">
+            <h2 style="color:white; margin:0;">احمِ ملفاتك بكلمة سر</h2>
+            <p style="color:white; margin:12px 0 0;">تشفير 256-bit AES مجاناً</p>
+            <a href="../pages/protect-pdf.html">ابدأ الحماية الآن ←</a>
+        </div>
+
+        <h2>المستوى 4: التوقيع الرقمي (للمستندات الرسمية)</h2>
+        <p>التوقيع الرقمي أقوى من التوقيع العادي بكثير. هو:</p>
+        <ul>
+            <li>🔒 يثبت هوية المرسل</li>
+            <li>🔍 يثبت إن المستند لم يتغير</li>
+            <li>⏰ يسجل وقت التوقيع</li>
+            <li>⚖️ له قيمة قانونية في أغلب الدول</li>
+        </ul>
+
+        <p>لكن التوقيع الرقمي يحتاج خدمة معتمدة وشهادة رقمية، وما يقدر أي شخص يحصل عليها. الشركات الكبيرة والحكومات يستخدمونها في العقود المهمة.</p>
+
+        <h2>المستوى 5: DRM (حماية حقوق الطبع والنشر)</h2>
+        <p>DRM (Digital Rights Management) هي أقوى حماية متاحة. هذي اللي تستخدمها نتفليكس وسبوتيفاي:</p>
+        <ul>
+            <li>📱 الملف يعمل فقط على أجهزة معينة</li>
+            <li>⏰ ينتهي بعد فترة (مثل اشتراك)</li>
+            <li>👤 مرتبط بحساب المستخدم</li>
+            <li>🚫 يمنع تماماً أي نسخ أو طباعة</li>
+        </ul>
+
+        <p>لكنها معقدة، تحتاج خادم خاص، وغير مجانية. للكتب الإلكترونية المدفوعة، DRM يستحق الاستثمار.</p>
+
+        <h2>مستوى الحماية حسب نوع المحتوى</h2>
+        <table style="width:100%; border-collapse: collapse; margin:24px 0; font-size:15px;">
+            <thead>
+                <tr style="background:#f9fafb;">
+                    <th style="padding:10px; border:1px solid #e5e7eb;">نوع المحتوى</th>
+                    <th style="padding:10px; border:1px solid #e5e7eb;">الحماية المطلوبة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:10px; border:1px solid #e5e7eb;">رسالة عادية</td><td style="padding:10px; border:1px solid #e5e7eb;">بدون حماية</td></tr>
+                <tr><td style="padding:10px; border:1px solid #e5e7eb;">فاتورة</td><td style="padding:10px; border:1px solid #e5e7eb;">علامة مائية</td></tr>
+                <tr><td style="padding:10px; border:1px solid #e5e7eb;">عقد عمل</td><td style="padding:10px; border:1px solid #e5e7eb;">توقيع رقمي</td></tr>
+                <tr><td style="padding:10px; border:1px solid #e5e7eb;">كتاب إلكتروني مدفوع</td><td style="padding:10px; border:1px solid #e5e7eb;">DRM</td></tr>
+                <tr><td style="padding:10px; border:1px solid #e5e7eb;">أسرار تجارية</td><td style="padding:10px; border:1px solid #e5e7eb;">تشفير + كلمة سر قوية</td></tr>
+            </tbody>
+        </table>
+
+        <h2>متى لا تحتاج لحماية؟</h2>
+        <p>صراحة، مو كل ملف يحتاج حماية. الملفات التالية ممكن تتركها بدون:</p>
+        <ul>
+            <li>📄 وثائق رسمية حكومية (غالباً متاحة للجميع)</li>
+            <li>📚 كتب تبي نشرها مجاناً</li>
+            <li>📋 إشعارات ورسائل عادية</li>
+            <li>🧾 فواتير صغيرة (اللي ما فيها معلومات حساسة)</li>
+        </ul>
+
+        <h2>الحقيقة حول "الحماية المطلقة"</h2>
+        <p>خليني أكون صريح: لا توجد حماية مطلقة لأي محتوى رقمي. أي شخص عنده خبرة كافية يقدر:</p>
+        <ul>
+            <li>تصوير الشاشة</li>
+            <li>طباعة افتراضية لـ PDF آخر</li>
+            <li>استخدام OCR لاستخراج النصوص</li>
+        </ul>
+
+        <p>لكن الهدف مو منع السرقة 100%، بل:</p>
+        <ol>
+            <li>تقليل السرابة العادية (90% من الناس)</li>
+            <li>تتبع من سرّب إذا صار</li>
+            <li>إظهار الجدية والاحترافية</li>
+        </ol>
+
+        <h2>نصائح إضافية للحماية</h2>
+        <ul>
+            <li>🔐 <strong>لا ترسل كلمة السر في نفس رسالة الملف</strong></li>
+            <li>📧 <strong>أرسل كلمة السر في رسالة منفصلة (واتساب، SMS)</strong></li>
+            <li>🗓️ <strong>غيّر كلمات السر بشكل دوري للمستندات الحساسة</strong></li>
+            <li>💾 <strong>لا تحفظ ملفات حساسة على أجهزة غير آمنة</strong></li>
+            <li>🌐 <strong>لا ترفع ملفات سرية على أدوات أونلاين ما تثق فيها</strong></li>
+        </ul>
+
+        <h2>الأسئلة الشائعة</h2>
+
+        <h3>هل يمكن كسر حماية PDF بكلمة سر؟</h3>
+        <p>إذا كانت كلمة سر قوية (12+ حرف، أرقام ورموز)، فالكسر يحتاج آلاف السنين بالحوسبة العادية. كلمة سر ضعيفة ممكن تُكسر في ساعات.</p>
+
+        <h3>هل أدوات الأونلاين آمنة لملفاتي السرية؟</h3>
+        <p>يعتمد على الأداة. أدوات مثل فورج دول تعالج الملفات على جهازك (بدون رفع)، فهي آمنة. لكن أدوات أخرى ترفع الملفات لسيرفراتها، فهناك خطر.</p>
+
+        <h3>كم تكلفة DRM للكتب؟</h3>
+        <p>تختلف حسب المنصة. Adobe Digital Editions و Kindle Direct Publishing يقدمان حلول بأسعار معقولة، تبدأ من 10% من أرباحك.</p>
+
+        <h3>هل تشفير 128-bit كافي؟</h3>
+        <p>نعم، 128-bit قوي جداً. لكن 256-bit هو المعيار الذهبي في 2026. استخدمه إذا كان متاحاً.</p>
+
+        <h2>الخاتمة</h2>
+        <p>حماية PDF فن وعلم معاً. ابدأ بالأساسيات (كلمة سر + علامة مائية)، ثم ارفع المستوى حسب أهمية المحتوى. لا تبالغ في الحماية لدرجة تعقيد الاستخدام على نفسك.</p>
+
+        <p>تذكر: الحماية الجيدة هي التي تحمي من 95% من محاولات السرقة، بدون ما تعقّد استخدامك اليومي للملفات.</p>
+
+        <a href="../blog.html" class="back-link">← العودة للمدونة</a>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 فورج دول. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+  </html>
